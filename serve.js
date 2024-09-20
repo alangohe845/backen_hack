@@ -1,45 +1,39 @@
-const express = require('express');
-const { Configuration, OpenAIApi } = require('openai');
-const dotenv = require('dotenv');
-
-// Configura las variables de entorno
-dotenv.config();
-
+const express = require("express");
+const mongoose = require("mongoose");
+const User = require("./models/user.js");
+const userRoute = require("./routes/user.js");
+const respuestasRoute = require("./routes/respuestas.js");
 const app = express();
-const port = process.env.PORT || 5000;
 
-// Configuración de OpenAI
-const configuration = new Configuration({
-  apiKey: process.env.OPENAI_API_KEY,
-});
-
-const openai = new OpenAIApi(configuration);
-
-// Middleware para parsear JSON
+// middleware
 app.use(express.json());
+app.use(express.urlencoded({extended: false}));
 
-// Ruta para manejar la interpretación de respuestas
-app.post('/api/interpretar-respuesta', async (req, res) => {
-  const { respuesta } = req.body;
 
-  try {
-    // Llama a la API de OpenAI para interpretar la respuesta
-    const completion = await openai.createChatCompletion({
-      model: "gpt-4",
-      messages: [{ role: "user", content: respuesta }],
+// routes
+app.use("/api/user", userRoute);
+app.use("/api/respuestas", respuestasRoute )
+
+
+
+
+app.get("/", (req, res) => {
+  res.send("Hello from Node API Server Updated");
+});
+
+
+
+mongoose
+  .connect(
+    "mongodb+srv://hackaton:12345@cluster0.lgyib.mongodb.net/hackatoon?retryWrites=true&w=majority"
+  )
+  .then(() => {
+    console.log("Connected to database!");
+    app.listen(3000, () => {
+      console.log("Server is running on port 3000");
     });
-
-    const solucion = completion.data.choices[0].message.content;
-
-    // Devuelve la solución en formato JSON
-    res.status(200).json({ solucion });
-  } catch (error) {
-    console.error("Error al interpretar la respuesta:", error);
-    res.status(500).json({ error: "Error al interpretar la respuesta" });
-  }
-});
-
-// Servidor en ejecución
-app.listen(port, () => {
-  console.log(`Servidor escuchando en el puerto ${port}`);
-});
+  })
+  .catch((error) => {
+    console.log(error);
+    console.log("Connection failed!");
+  });
