@@ -12,9 +12,11 @@ const getUsers = async (req, res) => {
 
 // Obtener un solo usuario por ID
 const getUser = async (req, res) => {
-  const { id } = req.params;
+  const body = req.body
   try {
-    const user = await User.findById(id);
+
+    console.log(body)
+    const user = await User.find({email: body.email, password: body.password});
     if (!user) {
       return res.status(404).json({ message: "Usuario no encontrado" });
     }
@@ -30,16 +32,18 @@ const createUser = async (req, res) => {
 
   try {
     // Validar si el email ya existe
-    const existingUser = await User.findOne({ email });
+    const existingUser = await User.findOne({email:  body.email });
     if (existingUser) {
       return res.status(400).json({ message: "El email ya está registrado" });
     }
+    console.log(body)
+    const newUser = new User({ name: body.name ,email: body.email, password: body.password});
 
-    const newUser = new User({ ...body });
     await newUser.save();
 
     res.status(201).json({ newUser });
   } catch (error) {
+    console.log(error)
     res.status(500).json({ message: "Error creando el usuario", error });
   }
 };
