@@ -16,7 +16,7 @@ app.use("/api/user", userRoute);
 app.use("/api/respuestas", respuestasRoute )
 
 app.use(cors({
-  origin: '*', 
+  origin: 'http://localhost:3000/', 
 }));
 
 
