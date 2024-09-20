@@ -7,7 +7,7 @@ const RespuestaSchema = new Schema(
     id_user: {
       type: Schema.Types.ObjectId,
       ref: "User",
-      required: true,
+      required: false,
     },
 
     frecuenciaCompra: {
@@ -66,7 +66,7 @@ const RespuestaSchema = new Schema(
       type: Number,
       required: [true, 'Este campo es requerido'],
     },
-    deudasPareja: [deuda.schema], 
+    
     numeroHijos: {
       type: Number,
       required: [true, 'Este campo es requerido'],

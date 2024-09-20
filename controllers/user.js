@@ -26,7 +26,7 @@ const getUser = async (req, res) => {
 
 // Crear un nuevo usuario
 const createUser = async (req, res) => {
-  const { name, apellido, email, password } = req.body;
+  const body = req.body;
 
   try {
     // Validar si el email ya existe
@@ -35,10 +35,10 @@ const createUser = async (req, res) => {
       return res.status(400).json({ message: "El email ya está registrado" });
     }
 
-    const newUser = new User({ name, apellido, email, password });
+    const newUser = new User({ ...body });
     await newUser.save();
 
-    res.status(201).json({ message: "Usuario creado correctamente", newUser });
+    res.status(201).json({ newUser });
   } catch (error) {
     res.status(500).json({ message: "Error creando el usuario", error });
   }

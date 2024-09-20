@@ -5,9 +5,9 @@ const {getRespuestas, getRespuesta, createRespuesta, updateRespuesta, deleteResp
 
 
 router.get('/', getRespuestas);
-router.get("/:id", getRespuesta);
+router.get("/:id_user", getRespuesta);
 
-router.post("/", createRespuesta);
+router.post("/:id_user", createRespuesta);
 
 // update a product
 router.put("/:id", updateRespuesta);
