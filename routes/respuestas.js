@@ -5,7 +5,7 @@ const {getRespuestas, getRespuesta, createRespuesta, updateRespuesta, deleteResp
 
 
 router.get('/', getRespuestas);
-router.get("/:id_user", getRespuesta);
+router.get("/:id", getRespuesta);
 
 router.post("/:id_user", createRespuesta);
 

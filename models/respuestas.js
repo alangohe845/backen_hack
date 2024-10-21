@@ -84,6 +84,10 @@ const RespuestaSchema = new Schema(
       required: [true, 'Este campo es requerido'],
     },
     deudas: [deuda.schema],
+
+    question: {
+      type: String
+    }
    
   },
 );

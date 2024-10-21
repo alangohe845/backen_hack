@@ -1,5 +1,7 @@
 const Respuesta = require('../models/respuestas.js');
-const DeudasModel = require("../models/deuda.js")
+const DeudasModel = require("../models/deuda.js");
+const apiConsume = require("../controllers/ia.js");
+const { response } = require('express');
 // Obtener todas las respuestas
 const getRespuestas = async (req, res) => {
   try {
@@ -14,87 +16,83 @@ const getRespuestas = async (req, res) => {
 const getRespuesta = async (req, res) => {
   const { id } = req.params;
   try {
-    const respuesta = await Respuesta.findById(id).populate('id_user'); // Usamos `populate` para obtener el usuario
-    if (!respuesta) {
+    const respuesta = await Respuesta.find({ id_user: id })
+      .populate('id_user')
+      .sort({ createdAt: -1 })  // Ordena por la fecha de creación (descendente)
+      .limit(1); // Limita el resultado al más reciente
+
+    if (respuesta.length === 0) {
       return res.status(404).json({ message: 'Respuesta no encontrada' });
     }
-    res.status(200).json(respuesta);
+
+    res.status(200).json(respuesta[0]); // Devuelve solo el objeto más reciente
   } catch (error) {
     res.status(500).json({ message: 'Error al obtener la respuesta', error });
   }
 };
 
+
 // Crear una nueva respuesta
 const createRespuesta = async (req, res) => {
   const body = req.body;
   const { id_user } = req.params;
-  let deudas
+  let deudas;
 
   try {
-    console.log(body);
     if (!body || Object.keys(body).length === 0) {
       return res.status(400).json({ message: "No se han encontrado datos" });
     }
 
     if (!id_user) {
-      console.log(id_user);
       return res.status(400).json({ message: "No se ha encontrado al usuario" });
     }
 
-    // Guardar la respuesta inmutable
-    const inmutableResponses = new Respuesta({ id_user, ...body });
-    const inmutableResponsesValue = await inmutableResponses.save()
+    // Consume la API para generar el plan financiero
+    const planFinanciero = await apiConsume(body);
 
-    // Condición para guardar las deudas del usuario
+    // Guardar la respuesta inmutable con el plan financiero generado
+    const inmutableResponses = new Respuesta({
+      id_user,
+      ...body,
+      planFinanciero, // Aquí almacenamos el plan financiero generado por la API
+    });
+
+    const inmutableResponsesValue = await inmutableResponses.save();
+
+    // Guardar las deudas si existen
     if (body.deudas && Array.isArray(body.deudas) && body.deudas.length > 0) {
-      const deudaRegisters = await body.deudas.map(entry => ({
+      const deudaRegisters = body.deudas.map(entry => ({
         concepto: entry.concepto,
-        monto: entry.monto
+        monto: entry.monto,
       }));
-    
-      const deudaParejaRegisters = 
-        body.deudasPareja && Array.isArray(body.deudasPareja) 
-        ? await body.deudasPareja.map(entry => ({
-            concepto: entry.concepto,
-            monto: entry.monto
-          }))
-        : []; // Inicializa como un arreglo vacío si no existe o no es un arreglo
-    
-      console.log(deudaParejaRegisters, deudaRegisters);
-      
+
+      const deudaParejaRegisters =
+        body.deudasPareja && Array.isArray(body.deudasPareja)
+          ? body.deudasPareja.map(entry => ({
+              concepto: entry.concepto,
+              monto: entry.monto,
+            }))
+          : [];
+
       const deuda = new DeudasModel({
         id_user,
         deuda: deudaRegisters,
-        deudaPareja: deudaParejaRegisters 
+        deudaPareja: deudaParejaRegisters,
       });
-      console.log(deuda);
-      
+
       deudas = await deuda.save();
     }
-    
 
-    // Condición para guardar las deudas de la pareja
-    // if (body.deudasPareja && Array.isArray(body.deudasPareja) && body.deudasPareja.length > 0) {
-    //   const deudaPareja = new DeudasModel({
-    //     id_user,
-    //     deuda: [], // Inicializamos vacío si no hay deudas del usuario
-    //     deudaPareja: body.deudasPareja.map(entry => ({
-    //       concepto: entry.concepto,
-    //       monto: entry.monto
-    //     }))
-    //   });
+    // Populamos el usuario en la respuesta inmutable
+    const populatedResponses = await inmutableResponsesValue.populate('id_user');
 
-     
-      // Populando el usuario en la respuesta inmutable
-      const populatedResponses = await inmutableResponsesValue.populate('id_user');
-
-    
-    res.status(201).json({populatedResponses, deudas});
+    // Respuesta final
+    res.status(201).json({ populatedResponses, deudas, planFinanciero });
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: 'Error al crear la respuesta', error });
   }
-}
+};
 
 
 

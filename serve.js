@@ -5,7 +5,9 @@ const userRoute = require("./routes/user.js");
 const respuestasRoute = require("./routes/respuestas.js");
 const app = express();
 const morgan = require('morgan');
-const cors = require("cors")
+const cors = require("cors");
+const connectDB = require("./config/conectDB.js");
+
 
 // middleware
 app.use(express.json());
@@ -30,17 +32,8 @@ app.get("/", (req, res) => {
 app.use("/api/user", userRoute);
 app.use("/api/respuestas", respuestasRoute )
 
-mongoose
-  .connect(
-    "mongodb+srv://hackaton:12345@cluster0.lgyib.mongodb.net/hackatoon?retryWrites=true&w=majority"
-  )
-  .then(() => {
-    console.log("Connected to database!");
-    app.listen(5000, () => {
-      console.log("Server is running on port 5000");
-    });
-  })
-  .catch((error) => {
-    console.log(error);
-    console.log("Connection failed!");
-  });
+connectDB()
+
+app.listen(5000, () => {
+  console.log("Server is running on port 5000");
+});

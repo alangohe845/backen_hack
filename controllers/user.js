@@ -33,7 +33,10 @@ const createUser = async (req, res) => {
   try {
     // Validar si el email ya existe
     const existingUser = await User.findOne({email:  body.email });
+
     if (existingUser) {
+      console.log(existingUser);
+        
       return res.status(400).json({ message: "El email ya está registrado" });
     }
     console.log(body)
