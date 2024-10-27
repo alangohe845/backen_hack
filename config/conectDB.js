@@ -3,7 +3,7 @@ const mongoose = require("mongoose");
 function connectDB() {
   mongoose
     .connect(
-      "mongodb://localhost:27017/fitControl"
+      process.env.MONGOURI
     )
     .then(() => {
       console.log("Connected to database!");

@@ -7,6 +7,7 @@ const app = express();
 const morgan = require('morgan');
 const cors = require("cors");
 const connectDB = require("./config/conectDB.js");
+const dotenv = require('dotenv')
 
 
 // middleware
@@ -14,7 +15,7 @@ app.use(express.json());
 app.use(express.urlencoded({extended: false}));
 
 
-
+dotenv.config()
 
 app.use(cors({
   origin: 'http://localhost:3000', // Permite solicitudes desde el frontend
